@@ -1,23 +1,34 @@
 import type { Request, Response } from "express";
 
-export async function handlerChirps(req: Request, res: Response) {
+import { respondWithJSON, respondWithError } from "./json.js";
+
+export async function handlerChirpsValidate(req: Request, res: Response) {
+    type parameters = {
+        body: string;
+    };
+
     let body = "";
 
     req.on("data", (chunk) => {
         body += chunk;
     });
 
+    let params: parameters;
     req.on("end", () => {
         try {
-            const parsedBody = JSON.parse(body);
-
-            if (parsedBody.body.length > 140) {
-                res.status(400).send({ error: "Chirp is too long" });
-            } else {
-                res.status(200).send({ valid: true });
-            }
-        } catch (error) {
-            res.status(400).send({ error: "Something went wrong" });
+            params = JSON.parse(body);
+        } catch (e) {
+            respondWithError(res, 400, "Invalid JSON");
+            return;
         }
+        const maxChirpLength = 140;
+        if (params.body.length > maxChirpLength) {
+            respondWithError(res, 400, "Chirp is too long");
+            return;
+        }
+
+        respondWithJSON(res, 200, {
+            valid: true,
+        });
     });
 }
