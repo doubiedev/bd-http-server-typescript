@@ -4,6 +4,7 @@ import { handlerReadiness } from "./api/readiness.js";
 import { handlerMetrics } from "./api/metrics.js";
 import { handlerReset } from "./api/reset.js";
 import {
+    middlewareErrorHandler,
     middlewareLogResponse,
     middlewareMetricsInc,
 } from "./api/middleware.js";
@@ -20,7 +21,15 @@ app.get("/api/healthz", handlerReadiness);
 app.get("/admin/metrics", handlerMetrics);
 app.post("/admin/reset", handlerReset);
 
-app.post("/api/validate_chirp", handlerChirpsValidate);
+app.post("/api/validate_chirp", async (req, res, next) => {
+    try {
+        await handlerChirpsValidate(req, res);
+    } catch (err) {
+        next(err);
+    }
+});
+
+app.use(middlewareErrorHandler);
 
 app.listen(PORT, () => {
     console.log(`Server is running at http://localhost:${PORT}`);
