@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { config } from "../config.js";
 import { respondWithError } from "./json.js";
+import { BadRequestError, NotFoundError } from "./errors.js";
 
 export function middlewareLogResponse(
     req: Request,
@@ -31,14 +32,16 @@ export function middlewareMetricsInc(
 
 export function errorMiddleWare(
     err: Error,
-    _: Request,
+    req: Request,
     res: Response,
-    __: NextFunction,
+    next: NextFunction,
 ) {
-    let statusCode = 500;
-    let message = "Something went wrong on our end";
-
-    console.log(err.message);
-
-    respondWithError(res, statusCode, message);
+    if (err instanceof BadRequestError) {
+        respondWithError(res, 400, err.message)
+    } else if (err instanceof NotFoundError) {
+        res.status(404).send("Not Found")
+    } else {
+        res.status(500).send("Internal Server Error")
+    }
 }
+
