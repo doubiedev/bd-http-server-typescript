@@ -15,6 +15,13 @@
       "when": 1765934834912,
       "tag": "0001_chubby_titanium_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1765935121297,
+      "tag": "0002_typical_valkyrie",
+      "breakpoints": true
     }
   ]
 }
