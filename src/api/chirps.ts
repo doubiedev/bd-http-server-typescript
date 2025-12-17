@@ -2,10 +2,13 @@ import type { Request, Response } from "express";
 
 import { respondWithJSON } from "./json.js";
 import { BadRequestError } from "./errors.js";
+import { getUser } from "../db/queries/users.js";
+import { createChirp } from "../db/queries/chirps.js";
 
-export async function handlerChirpsValidate(req: Request, res: Response) {
+export async function handlerChirpsCreate(req: Request, res: Response) {
     type parameters = {
         body: string;
+        userId: string;
     };
 
     const params: parameters = req.body;
@@ -28,7 +31,23 @@ export async function handlerChirpsValidate(req: Request, res: Response) {
 
     const cleaned = words.join(" ");
 
-    respondWithJSON(res, 200, {
-        cleanedBody: cleaned,
+    const user = await getUser(params.userId);
+
+    if (!user) {
+        throw new BadRequestError(`No user found for provided id`);
+    }
+
+    const chirp = await createChirp({ body: cleaned, userId: user.id })
+
+    if (!chirp) {
+        throw new Error("Could not create chirp");
+    }
+
+    respondWithJSON(res, 201, {
+        id: chirp.id,
+        createdAt: chirp.createdAt,
+        updatedAt: chirp.updatedAt,
+        body: chirp.body,
+        userId: chirp.userId,
     });
 }
