@@ -45,7 +45,18 @@ function getCleanedBody(body: string, badWords: string[]) {
     return cleaned;
 }
 
-export async function handlerChirpsRetrieve(_: Request, res: Response) {
-    const chirps = await getChirps();
-    respondWithJSON(res, 200, chirps);
+export async function handlerChirpsRetrieve(req: Request, res: Response) {
+    type parameters = {
+        chirpID?: string;
+    };
+
+    const params: parameters = req.params;
+
+    if (!params.chirpID) {
+        const chirps = await getChirps();
+        respondWithJSON(res, 200, chirps);
+    }
+
+    const chirp = await getChirps(req.params.chirpID);
+    respondWithJSON(res, 200, chirp);
 }

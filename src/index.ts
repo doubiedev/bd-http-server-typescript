@@ -45,6 +45,9 @@ app.post("/api/chirps", (req, res, next) => {
 app.get("/api/chirps", (req, res, next) => {
     Promise.resolve(handlerChirpsRetrieve(req, res)).catch(next);
 });
+app.get("/api/chirps/:chirpID", (req, res, next) => {
+    Promise.resolve(handlerChirpsRetrieve(req, res)).catch(next);
+});
 
 app.use(errorMiddleWare);
 
