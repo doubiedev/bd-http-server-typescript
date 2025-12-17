@@ -6,3 +6,7 @@ export async function createChirp(chirp: NewChirp) {
     return rows;
 }
 
+export async function getChirps() {
+    const rows = await db.select().from(chirps).orderBy(chirps.createdAt)
+    return rows;
+}
