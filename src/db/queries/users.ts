@@ -11,17 +11,12 @@ export async function createUser(user: NewUser) {
     return result;
 }
 
-export async function getUser(userId: string) {
-    const [result] = await db.select().from(users).where(eq(users.id, userId));
-    return result;
+export async function reset() {
+    await db.delete(users);
 }
 
 export async function getUserByEmail(email: string) {
     const [result] = await db.select().from(users).where(eq(users.email, email));
     return result;
-}
-
-export async function reset() {
-    await db.delete(users);
 }
 

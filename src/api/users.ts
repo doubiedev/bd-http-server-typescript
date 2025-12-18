@@ -3,7 +3,10 @@ import type { Request, Response } from "express";
 import { createUser } from "../db/queries/users.js";
 import { BadRequestError } from "./errors.js";
 import { respondWithJSON } from "./json.js";
+import { NewUser } from "src/db/schema.js";
 import { hashPassword } from "../auth.js";
+
+export type UserResponse = Omit<NewUser, "hashedPassword">;
 
 export async function handlerUsersCreate(req: Request, res: Response) {
     type parameters = {
@@ -12,13 +15,16 @@ export async function handlerUsersCreate(req: Request, res: Response) {
     };
     const params: parameters = req.body;
 
-    if (!params.email || !params.password) {
+    if (!params.password || !params.email) {
         throw new BadRequestError("Missing required fields");
     }
 
-    const hashedPassword = await hashPassword(params.password)
+    const hashedPassword = await hashPassword(params.password);
 
-    const user = await createUser({ email: params.email, password: hashedPassword });
+    const user = await createUser({
+        email: params.email,
+        hashedPassword,
+    } satisfies NewUser);
 
     if (!user) {
         throw new Error("Could not create user");
@@ -29,6 +35,6 @@ export async function handlerUsersCreate(req: Request, res: Response) {
         email: user.email,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
-    });
+    } satisfies UserResponse);
 }
 
