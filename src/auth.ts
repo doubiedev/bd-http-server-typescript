@@ -1,6 +1,7 @@
 import argon2 from "argon2";
 import jwt from "jsonwebtoken";
 import type { JwtPayload } from "jsonwebtoken";
+import type { Request } from "express";
 
 import { UserNotAuthenticatedError } from "./api/errors.js";
 
@@ -57,3 +58,15 @@ export function validateJWT(tokenString: string, secret: string) {
     return decoded.sub;
 }
 
+export function getBearerToken(req: Request): string {
+    const authHeader = req.get("Authorization");
+    if (!authHeader) {
+        throw new UserNotAuthenticatedError("Invalid token");
+    }
+
+    const token = authHeader.slice(0, 6).toLowerCase() === "bearer" ? authHeader.slice(6).trim() : "";
+    if (token === "") {
+        throw new UserNotAuthenticatedError("Invalid token");
+    }
+    return token;
+}

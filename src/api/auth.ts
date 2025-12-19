@@ -1,15 +1,17 @@
 import { getUserByEmail } from "../db/queries/users.js";
-import { checkPasswordHash } from "../auth.js";
+import { checkPasswordHash, makeJWT } from "../auth.js";
 import { respondWithJSON } from "./json.js";
 import { UserNotAuthenticatedError } from "./errors.js";
 
 import type { Request, Response } from "express";
-import type { UserResponse } from "./users.js";
+import type { LoginResponse } from "./users.js";
+import { config } from "../config.js";
 
 export async function handlerLogin(req: Request, res: Response) {
     type parameters = {
         password: string;
         email: string;
+        expiresInSeconds?: number;
     };
 
     const params: parameters = req.body;
@@ -27,11 +29,19 @@ export async function handlerLogin(req: Request, res: Response) {
         throw new UserNotAuthenticatedError("invalid username or password");
     }
 
+    let expiresInSeconds = 60 * 60;
+    if (params.expiresInSeconds !== undefined && (params.expiresInSeconds > 0 || params.expiresInSeconds < 60 * 60)) {
+        expiresInSeconds = params.expiresInSeconds;
+    }
+
+    const token = makeJWT(user.id, expiresInSeconds, config.api.jwtSecret)
+
     respondWithJSON(res, 200, {
         id: user.id,
         email: user.email,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
-    } satisfies UserResponse);
+        token: token,
+    } satisfies LoginResponse);
 }
 

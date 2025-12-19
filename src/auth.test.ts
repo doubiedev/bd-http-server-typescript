@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll } from "vitest";
-import { hashPassword, checkPasswordHash, makeJWT, validateJWT } from "./auth";
+import { hashPassword, checkPasswordHash, makeJWT, validateJWT, getBearerToken } from "./auth";
 import { UserNotAuthenticatedError } from "./api/errors.js";
+import type { Request } from "express";
 
 describe("Password Hashing", () => {
     const password1 = "correctPassword123!";
@@ -44,6 +45,30 @@ describe("JWT Functions", () => {
     const wrongSecret = "wrong_secret";
     const userID = "some-unique-user-id";
     let validToken: string;
+    const goodReq = {
+        get: (header: string) => {
+            if (header === "Authorization") {
+                return "Bearer mytoken";
+            }
+            return undefined;
+        },
+    } as Request;
+    const badReqEmptyToken = {
+        get: (header: string) => {
+            if (header === "Authorization") {
+                return "Bearer ";
+            }
+            return undefined;
+        },
+    } as Request;
+    const badReqUndefined = {
+        get: (header: string) => {
+            if (header === "Authorization") {
+                return undefined;
+            }
+            return undefined;
+        },
+    } as Request;
 
     beforeAll(() => {
         validToken = makeJWT(userID, 3600, secret);
@@ -62,6 +87,22 @@ describe("JWT Functions", () => {
 
     it("should throw an error when the token is signed with a wrong secret", () => {
         expect(() => validateJWT(validToken, wrongSecret)).toThrow(
+            UserNotAuthenticatedError,
+        );
+    });
+
+    it("should should return the token for a valid request", () => {
+        expect(getBearerToken(goodReq)).toEqual("mytoken");
+    });
+
+    it("should throw an error when the request has no authorization header", () => {
+        expect(() => getBearerToken(badReqUndefined)).toThrow(
+            UserNotAuthenticatedError,
+        );
+    });
+
+    it("should throw an error when the request has an empty bearer token", () => {
+        expect(() => getBearerToken(badReqEmptyToken)).toThrow(
             UserNotAuthenticatedError,
         );
     });
