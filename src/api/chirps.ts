@@ -11,10 +11,10 @@ export async function handlerChirpsCreate(req: Request, res: Response) {
         body: string;
     };
 
-    const token = getBearerToken(req);
-    const userId = validateJWT(token, config.api.jwtSecret)
-
     const params: parameters = req.body;
+
+    const token = getBearerToken(req);
+    const userId = validateJWT(token, config.jwt.secret);
 
     const cleaned = validateChirp(params.body);
     const chirp = await createChirp({ body: cleaned, userId: userId });

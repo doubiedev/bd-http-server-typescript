@@ -7,9 +7,6 @@ import { NewUser } from "src/db/schema.js";
 import { hashPassword } from "../auth.js";
 
 export type UserResponse = Omit<NewUser, "hashedPassword">;
-export type LoginResponse = UserResponse & {
-    token: string;
-};
 
 export async function handlerUsersCreate(req: Request, res: Response) {
     type parameters = {

@@ -4,14 +4,18 @@ import { respondWithJSON } from "./json.js";
 import { UserNotAuthenticatedError } from "./errors.js";
 
 import type { Request, Response } from "express";
-import type { LoginResponse } from "./users.js";
+import type { UserResponse } from "./users.js";
 import { config } from "../config.js";
+
+type LoginResponse = UserResponse & {
+    token: string;
+};
 
 export async function handlerLogin(req: Request, res: Response) {
     type parameters = {
         password: string;
         email: string;
-        expiresInSeconds?: number;
+        expiresIn?: number;
     };
 
     const params: parameters = req.body;
@@ -29,19 +33,19 @@ export async function handlerLogin(req: Request, res: Response) {
         throw new UserNotAuthenticatedError("invalid username or password");
     }
 
-    let expiresInSeconds = 60 * 60;
-    if (params.expiresInSeconds !== undefined && (params.expiresInSeconds > 0 || params.expiresInSeconds < 60 * 60)) {
-        expiresInSeconds = params.expiresInSeconds;
+    let duration = config.jwt.defaultDuration;
+    if (params.expiresIn && !(params.expiresIn > config.jwt.defaultDuration)) {
+        duration = params.expiresIn;
     }
 
-    const token = makeJWT(user.id, expiresInSeconds, config.api.jwtSecret)
+    const accessToken = makeJWT(user.id, duration, config.jwt.secret);
 
     respondWithJSON(res, 200, {
         id: user.id,
         email: user.email,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
-        token: token,
+        token: accessToken,
     } satisfies LoginResponse);
 }
 

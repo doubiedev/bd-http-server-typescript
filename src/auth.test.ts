@@ -1,7 +1,12 @@
 import { describe, it, expect, beforeAll } from "vitest";
-import { hashPassword, checkPasswordHash, makeJWT, validateJWT, getBearerToken } from "./auth";
-import { UserNotAuthenticatedError } from "./api/errors.js";
-import type { Request } from "express";
+import {
+    hashPassword,
+    checkPasswordHash,
+    makeJWT,
+    validateJWT,
+    extractBearerToken,
+} from "./auth";
+import { BadRequestError, UserNotAuthenticatedError } from "./api/errors.js";
 
 describe("Password Hashing", () => {
     const password1 = "correctPassword123!";
@@ -45,30 +50,6 @@ describe("JWT Functions", () => {
     const wrongSecret = "wrong_secret";
     const userID = "some-unique-user-id";
     let validToken: string;
-    const goodReq = {
-        get: (header: string) => {
-            if (header === "Authorization") {
-                return "Bearer mytoken";
-            }
-            return undefined;
-        },
-    } as Request;
-    const badReqEmptyToken = {
-        get: (header: string) => {
-            if (header === "Authorization") {
-                return "Bearer ";
-            }
-            return undefined;
-        },
-    } as Request;
-    const badReqUndefined = {
-        get: (header: string) => {
-            if (header === "Authorization") {
-                return undefined;
-            }
-            return undefined;
-        },
-    } as Request;
 
     beforeAll(() => {
         validToken = makeJWT(userID, 3600, secret);
@@ -90,21 +71,34 @@ describe("JWT Functions", () => {
             UserNotAuthenticatedError,
         );
     });
+});
 
-    it("should should return the token for a valid request", () => {
-        expect(getBearerToken(goodReq)).toEqual("mytoken");
+describe("extractBearerToken", () => {
+    it("should extract the token from a valid header", () => {
+        const token = "mySecretToken";
+        const header = `Bearer ${token}`;
+        expect(extractBearerToken(header)).toBe(token);
     });
 
-    it("should throw an error when the request has no authorization header", () => {
-        expect(() => getBearerToken(badReqUndefined)).toThrow(
-            UserNotAuthenticatedError,
-        );
+    it("should extract the token even if there are extra parts", () => {
+        const token = "mySecretToken";
+        const header = `Bearer ${token} extra-data`;
+        expect(extractBearerToken(header)).toBe(token);
     });
 
-    it("should throw an error when the request has an empty bearer token", () => {
-        expect(() => getBearerToken(badReqEmptyToken)).toThrow(
-            UserNotAuthenticatedError,
-        );
+    it("should throw a BadRequestError if the header does not contain at least two parts", () => {
+        const header = "Bearer";
+        expect(() => extractBearerToken(header)).toThrow(BadRequestError);
+    });
+
+    it('should throw a BadRequestError if the header does not start with "Bearer"', () => {
+        const header = "Basic mySecretToken";
+        expect(() => extractBearerToken(header)).toThrow(BadRequestError);
+    });
+
+    it("should throw a BadRequestError if the header is an empty string", () => {
+        const header = "";
+        expect(() => extractBearerToken(header)).toThrow(BadRequestError);
     });
 });
 
