@@ -31,5 +31,24 @@ POST http://localhost:8080/api/users HTTP/1.1
 Content-Type: application/json
 
 {
-  "email": "user@example.com"
+  "email": "user@example.com",
+  "password": "123456"
 }
+
+
+### 
+
+POST http://localhost:8080/api/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "123456"
+}
+
+
+### 
+
+POST http://localhost:8080/api/refresh HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer 9a61ac00235f40c3cffe12a3b9206f89a316fb99af10578f85f918e27e03eac3
