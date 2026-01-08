@@ -1,12 +1,21 @@
-import { and, eq, gt, isNull } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "../index.js";
-import { NewUser, users, refreshTokens } from "../schema.js";
+import { NewUser, users } from "../schema.js";
 
 export async function createUser(user: NewUser) {
     const [result] = await db
         .insert(users)
         .values(user)
         .onConflictDoNothing()
+        .returning();
+    return result;
+}
+
+export async function updateUser(id: string, user: NewUser) {
+    const [result] = await db
+        .update(users)
+        .set({ ...user, updatedAt: new Date() })
+        .where(eq(users.id, id))
         .returning();
     return result;
 }
