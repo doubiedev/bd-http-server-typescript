@@ -1,4 +1,10 @@
-import { pgTable, timestamp, varchar, uuid, boolean } from "drizzle-orm/pg-core";
+import {
+    pgTable,
+    timestamp,
+    varchar,
+    uuid,
+    boolean,
+} from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -11,7 +17,7 @@ export const users = pgTable("users", {
     hashedPassword: varchar("hashed_password", { length: 256 })
         .notNull()
         .default("unset"),
-    isChirpyRed: boolean().default(false),
+    isChirpyRed: boolean("is_chirpy_red").default(false).notNull(),
 });
 
 export type NewUser = typeof users.$inferInsert;
@@ -46,3 +52,4 @@ export const refreshTokens = pgTable("refresh_tokens", {
 });
 
 export type NewToken = typeof refreshTokens.$inferInsert;
+

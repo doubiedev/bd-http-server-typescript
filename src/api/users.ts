@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 
-import { createUser, updateUser, upgradeUser } from "../db/queries/users.js";
-import { BadRequestError, NotFoundError } from "./errors.js";
+import { createUser, updateUser } from "../db/queries/users.js";
+import { BadRequestError } from "./errors.js";
 import { respondWithJSON } from "./json.js";
 import { NewUser } from "src/db/schema.js";
 import { getBearerToken, hashPassword, validateJWT } from "../auth.js";
@@ -66,29 +66,5 @@ export async function handlerUsersUpdate(req: Request, res: Response) {
         email: user.email,
         isChirpyRed: user.isChirpyRed,
     } satisfies UserResponse);
-}
-
-export async function handlerUsersUpgrade(req: Request, res: Response) {
-    type parameters = {
-        event: string;
-        data: { userId: string };
-    };
-    const params: parameters = req.body;
-
-    if (params.event !== "user.upgraded") {
-        res.status(204).send();
-        return;
-    }
-
-    if (!params.data.userId) {
-        throw new BadRequestError("Missing required fields");
-    }
-
-    const user = await upgradeUser(params.data.userId);
-    if (!user) {
-        throw new NotFoundError(`User with userId: ${params.data.userId} not found`);
-    }
-
-    res.status(204).send();
 }
 

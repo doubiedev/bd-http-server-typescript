@@ -37,9 +37,7 @@ export async function updateUser(
     return result;
 }
 
-export async function upgradeUser(
-    id: string,
-) {
+export async function upgradeChirpyRed(id: string) {
     const [result] = await db
         .update(users)
         .set({
@@ -50,3 +48,4 @@ export async function upgradeUser(
 
     return result;
 }
+
