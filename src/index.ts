@@ -13,9 +13,9 @@ import {
 } from "./api/middleware.js";
 import {
     handlerChirpsCreate,
+    handlerChirpsDelete,
     handlerChirpsGet,
     handlerChirpsRetrieve,
-    handlerChirpsDelete,
 } from "./api/chirps.js";
 import { config } from "./config.js";
 import { handlerUsersCreate, handlerUsersUpdate } from "./api/users.js";
