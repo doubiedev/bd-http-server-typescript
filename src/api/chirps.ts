@@ -71,6 +71,15 @@ export async function handlerChirpsRetrieve(req: Request, res: Response) {
         (chirp) => chirp.userId === authorId || authorId === "",
     );
 
+    let sort = "";
+    let sortQuery = req.query.sort;
+    if (typeof sortQuery === "string") {
+        sort = sortQuery;
+    }
+    if (sort === "desc") {
+        filteredChirps.reverse();
+    }
+
     respondWithJSON(res, 200, filteredChirps);
 }
 
