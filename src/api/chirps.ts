@@ -6,7 +6,6 @@ import {
     deleteChirp,
     getChirp,
     getChirps,
-    getChirpsByAuthor,
 } from "../db/queries/chirps.js";
 import {
     BadRequestError,
@@ -60,18 +59,19 @@ function getCleanedBody(body: string, badWords: string[]) {
 }
 
 export async function handlerChirpsRetrieve(req: Request, res: Response) {
+    const chirps = await getChirps();
+
     let authorId = "";
     let authorIdQuery = req.query.authorId;
     if (typeof authorIdQuery === "string") {
         authorId = authorIdQuery;
     }
 
-    if (authorId !== "") {
-        const chirps = await getChirpsByAuthor(authorId);
-        respondWithJSON(res, 200, chirps);
-    }
-    const chirps = await getChirps();
-    respondWithJSON(res, 200, chirps);
+    const filteredChirps = chirps.filter(
+        (chirp) => chirp.userId === authorId || authorId === "",
+    );
+
+    respondWithJSON(res, 200, filteredChirps);
 }
 
 export async function handlerChirpsGet(req: Request, res: Response) {
